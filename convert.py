@@ -129,7 +129,7 @@ define_ibex_controller({
             this.options.transfer = null; // Remove 'click to continue message'.
             this.element.VBox({
                 options: this.options,
-                triggers: [1],
+                triggers: [1,2],
                 children: [
                     "FlashSentence", this.options,
                     "Question2", this.options,
@@ -219,10 +219,10 @@ primes = [ 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43 ]
 for sn in session_names:
     conditions[sn] = { }
     for l in sessions[sn]:
-        if indexwd(l, colnames, 'conditionLabel', None) is not None or indexwd(l, colnames, 'condition', None) is not None:
+        if indexwd(l, colnames, 'conditionLabel', None) is not None or indexwd(l, colnames, 'condition', None) is not None or indexwd(l, colnames, '*condition', None) is not None:
             conditions[sn][indexwd(l, colnames, 'conditionLabel', '') + indexwd(l, colnames, 'condition', '')] = True
         if indexwd(l, colnames, 'item', None) is not None:
-            it = int(indexwd(l,colnames,'item'))
+            it = int(indexwd(l,colnames,'item', ''))
             if items.has_key(str(seshnum) + '-' + str(it)):
                 pass
             else:
@@ -271,10 +271,10 @@ qType=""
 scale_comment_lefts = [ ]
 scale_comment_rights = [ ]
 for l in lines:
-    if indexwd(l, colnames, 'qType2', '') is not None:
+    if indexwd(l, colnames, 'question2', '') is not None:
         m = re.match(scale_regexp, indexwd(l, colnames, 'question2', ''))
     else:
-        m = re.match(scale_regexp, indexwd(l, colnames, 'question', ''))
+        m = re.match(column_style_scale_regexp, indexwd(l, colnames, 'qType', ''))
     if not m:
         sys.stderr.write("Error: could not parse scale comments\n")
         sys.exit(1)
@@ -298,6 +298,8 @@ for l in lines:
 
 def gen_item_DashAJ(sid, sn, l, colnames, line_index):
     cond = str(sid)  + '-' + indexwd(l, colnames, 'conditionLabel', '') + indexwd(l, colnames, 'condition', '')
+    if indexwd(l, colnames, '*condition', '') is not None:
+        cond = str(sid)  + '-' + indexwd(l, colnames, 'conditionLabel', '')
     if session_opts[sn]['design'].upper() == 'RANDOM':
         pass
     elif session_opts[sn]['design'].upper() == 'LATINSQUARE':
@@ -310,7 +312,7 @@ def gen_item_DashAJ(sid, sn, l, colnames, line_index):
     else:
         sys.stderr.write("Did not recognize design type '%s'\n" % session_opts[sn]['design'])
         sys.exit(1)
-    controller="DAJ"
+    controller="AJ"
     dashedAJOptions=None  
     if indexwd(l, colnames, 'setup', '') is not None and indexwd(l, colnames, 'context', '') is not None:
         html = indexwd(l, colnames, 'setup', '') + '<br>' + indexwd(l, colnames, 'context', '') + '<br>' + indexwd(l, colnames, 'text', '')
@@ -338,47 +340,33 @@ def gen_item(sid, sn, l, colnames, line_index):
     elif session_opts[sn]['design'].upper() == 'LATINSQUARE':
         cond = [cond, items[str(sid) + '-' + str(int(indexwd(l, colnames, 'item')))]]
     elif session_opts[sn]['design'].upper() == 'WITHIN':
-        #cond = [cond, items[str(sid) + '-' + str(int(indexwd(l, colnames, 'item')))]]
-        #cond = str(sid) + '-' + indexwd(l, colnames, 'item', '') 
         cond = indexwd(l, colnames, 'condition', '') + '-' + indexwd(l, colnames, 'item', '')
-        #cond = [cond, items[str(sid) + '-' + str(int(indexwd(l, colnames, 'item')))]]
-        #cond = [cond, items[str(sid) + '-' + str(int(indexwd(l, colnames, 'item')))]]
-        #cond = [cond, items[str(sid) + '-' + str(int(indexwd(l, colnames, 'item')))]]
-        #cond = [cond, items[str(sid) + '-' + str(int(indexwd(l, colnames, 'item')))]]
     else:
         sys.stderr.write("Did not recognize design type '%s'\n" % session_opts[sn]['design'])
         sys.exit(1)
     if isSelfPaced:
         controller ="DAJ"
-    elif isQAJ:
+    if isQAJ:
         controller = "QAJ"
         html = '<br>'
     else:
         controller = "AJ"
         html = "Read the passage below carefully: <br><br>" + indexwd(l, colnames, 'context', '')
     ajoptions = None
-    
-    #if indexwd(l, colnames, 'setup', '') is not None:
-    #    html = indexwd(l, colnames, 'setup', '') + '<br>' + indexwd(l, colnames, 'context', '') + '<br>' + indexwd(l, colnames, 'text', '')
-        #commented code below is for reading unicode strings backwards, didn't end up using this but maybe helpful later
-        #if notunicode == False:
-        #    html = indexwd(l, colnames, 'setup', '') + indexwd(l, colnames, 'context', '') + indexwd(l, colnames, 'text', '')
-        #    html = unicode(html, 'utf-8')
-        #    html = html[::-1]
-   # else:
-   #     html = indexwd(l, colnames, 'text', '')
-        #likewise here for unicode stuff
-        #if notunicode == False:
-        #    html = unicode(html, 'utf-8')
-        #    html = html[::-1]
     # Determine whether or not this is audio.
     if indexwd(l, colnames, 'contextFile') is not None or indexwd(l, colnames, 'wavFile') is not None:
         # Audio
         audiofiles = [ ]
+        extraInfo = []
         if indexwd(l, colnames, 'contextFile') is not None:
             audiofiles.append(indexwd(l, colnames, 'contextFile'))
         if indexwd(l, colnames, 'wavFile') is not None:
             audiofiles.append(indexwd(l, colnames, 'wavFile'))
+        for element in colnames:
+            if re.match(r"(\*)", element) is not None:
+                #extraInfo[element] = indexwd(l, colnames, element)
+                extraInfo.append(element)
+                extraInfo.append(indexwd(l, colnames, element))
         if indexwd(l, colnames, 'qType', '') == "jm":
             ajoptions = dict(
                 html=html,
@@ -386,7 +374,8 @@ def gen_item(sid, sn, l, colnames, line_index):
                 q = questions[line_index],
                 leftComment = scale_comment_lefts[line_index],
                 rightComment = scale_comment_rights[line_index],
-                moreHTML = indexwd(l, colnames, 'text', '')
+                moreHTML = indexwd(l, colnames, 'text', ''),
+                extra = extraInfo
         )
         elif indexwd(l, colnames, 'qType', '') == "mcF":
             ajoptions = dict(
@@ -397,11 +386,26 @@ def gen_item(sid, sn, l, colnames, line_index):
                 q= questions[line_index],
                 leftComment = scale_comment_lefts[line_index],
                 rightComment = scale_comment_rights[line_index],
-                moreHTML = indexwd(l, colnames, 'text', '')
+                moreHTML = indexwd(l, colnames, 'text', ''),
+                extra = extraInfo
         )
     else:
         # Text
-        if isSelfPaced:
+        if isSelfPaced and isQAJ:
+            ajoptions = dict(
+                    qAJ= indexwd(l, colnames, 'question2', ''),
+                    AJas = [indexwd(l, colnames, 'correctAnswer', ''), indexwd(l, colnames, 'alt1Answer', '')],
+                    html = html,
+                    s = re.split(r"\s*\\n\s*", indexwd(l, colnames, 'text', ''))[0],
+                    q = indexwd(l, colnames, 'question', ''),
+                    leftComment = scale_comment_lefts[line_index],
+                    rightComment = scale_comment_rights[line_index],
+                    mode = "self-paced reading",
+                    #as = ["1","2","3","4","5","6","7"],
+                    presentAsScale = "true",
+                    extra = extraInfo
+                )
+        elif isSelfPaced:
             ajoptions = dict(
                     html = html,
                     s = re.split(r"\s*\\n\s*", indexwd(l, colnames, 'text', ''))[0],
@@ -410,7 +414,8 @@ def gen_item(sid, sn, l, colnames, line_index):
                     rightComment = scale_comment_rights[line_index],
                     mode = "self-paced reading",
                     #as = ["1","2","3","4","5","6","7"],
-                    presentAsScale = "true"
+                    presentAsScale = "true",
+                    extra = extraInfo
                 )
         elif indexwd(l, colnames, 'qType', '') == "mcF":
             ajoptions = dict(
@@ -421,7 +426,8 @@ def gen_item(sid, sn, l, colnames, line_index):
                 s= questions[line_index],
                 leftComment = scale_comment_lefts[line_index],
                 rightComment = scale_comment_rights[line_index],
-                moreHTML = indexwd(l, colnames, 'text', '')
+                moreHTML = indexwd(l, colnames, 'text', ''),
+                extra = extraInfo
         )
         elif indexwd(l, colnames, 'qType', '') == "jm":
             ajoptions = dict(
@@ -431,7 +437,8 @@ def gen_item(sid, sn, l, colnames, line_index):
                     leftComment = scale_comment_lefts[line_index],
                     rightComment = scale_comment_rights[line_index],
                     #as = ["1","2","3","4","5","6","7"],
-                    presentAsScale = "true"
+                    presentAsScale = "true",
+                    extra = extraInfo
                 )
         else:
             ajoptions = dict(
@@ -442,11 +449,9 @@ def gen_item(sid, sn, l, colnames, line_index):
                 #q =  questions[line_index], #testing out uncommenting this
                 leftComment = scale_comment_lefts[line_index],
                 rightComment = scale_comment_rights[line_index],
-                moreHTML = indexwd(l, colnames, 'text', '')
+                moreHTML = indexwd(l, colnames, 'text', ''),
+                extra =extraInfo
         )
-    #print "this is what you want:"
-    #print html
-    #print cond
     return json.dumps([cond, controller, ajoptions])
 
 instructions = None
@@ -479,13 +484,13 @@ out.write(make_preamble(shufseq))
 out.write("var items = [\n")
 
 out.write("""
-["__workerid__", "Form", { html: "<p>Please enter your participant number: <p><input type='text' name='workerid' size='20'>" }],
+["__workerid__", "Form", { html: "<p>Please enter your worker id: <p><input type='text' name='workerid' size='20'>" }],
 
 ["__results__", "__SendResults__", { }],
 
 ["__code__", "Message", { transfer: null, html: "Thank you! Your completion code is: " + genCode() }],
 
-["sep", "Separator", {transfer: "keypress", normalMessage: "Please press any key to move     on to the next passage.", ignoreFailure: true}],
+["sep", "Separator", {transfer: "keypress", normalMessage: "Please press any key to move on to the next passage.", ignoreFailure: true}],
 """)
 
 if wIntro:
