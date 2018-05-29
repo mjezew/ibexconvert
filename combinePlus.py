@@ -57,26 +57,34 @@ trialString=''.join(trialDataHeadersA)
 commaCount=trialString.count('\t')
 #print commaCount
 #get worker ID\
-#workerid=[]
+workerid=''
 #workerid[0]='ID not Found'
-workerid='ID not found'
+#workerid='ID not found'
 fullcount=-1
-idPattern=re.compile(r"^PARTICIPANT\sID:\s(\d*)$")
+#idPattern=re.compile(r"^\#PARTICIPANT\sID:\s(\w*)$")
+
+
+#print idPattern
+#idPattern=re.compile(r"^PARTICIPANT\sID:\s(\d*)$")
+idPattern = re.compile(r"workerid,(\w*)")
+
 for workerLines in trialDataList:
     fullcount+=1
-    match=idPattern.match(workerLines)
+    match=idPattern.search(workerLines)
+    #print workerLines
+    #print match
+    if match:
+        workerid=match.group(1)
     if len(workerLines)>0 and workerLines[0]!="#" and not match:
             workerLinesList=workerLines.split(',')
             while trialDataList[fullcount].count(',') < commaCount-1:
                 trialDataList[fullcount]+=',NULL'
             trialDataList[fullcount]+=","+workerid
             #if workerLinesList[7]=="workerid":
-                #workerid[workercount]=workerLinesList[8]
-                #workerid=workerLinesList[8]
-    elif match:
-        workerid=match.group(1)
+            #    workerid[workercount]=workerLinesList[8]
+            #    workerid=workerLinesList[8]
 #retrieve headers from original files
-headersString=experimentData[0]+trialString+"\tWorker ID Number"
+headersString=experimentData[0]+trialString+"\tQuestion"+"\tJudgment"+"\tNULL"+"\tTime taken to answer."+"\t Worker ID"
 #read number of tabs in experimentfile, to add form data without having odd number of columns
 tabcount=experimentData[1].count('\t')
 #open output
@@ -102,16 +110,24 @@ for trialLine in trialDataList:
             newoutput.write(trialLine.replace(",","\t")+"\t""\n")
             #if itemNum and itemNum>0:
             #print "formfound"
-
         elif idMatch:
             pass
         else:
             if formNumber==0:
-                formNumber=2
+                formNumber=4
+            #print trialLine
             itemNum=int(trialLine.split(',')[3])-formNumber
-            if itemNum and itemNum>0:
+            if itemNum ==1:
+                newoutput.write(experimentData[itemNum]+"\t"+trialLine.replace(",", "\t")+"\t""\n")
+            elif itemNum and itemNum>=0:
                 #take row number item num from experimentData
                 #add workerid based on experiment type
                 #print experimentData[itemNum]+trialLine
+                #print experimentData[itemNum]
+                #print trialLine
+                #print itemNum
                 newoutput.write(experimentData[itemNum]+"\t"+trialLine.replace(",", "\t")+"\t""\n")
+            else:
+                #plus 1 if exp1 or exp2, plus 2 if exp3 for liz
+                newoutput.write(experimentData[itemNum+1]+"\t"+trialLine.replace(",", "\t")+"\t""\n")
 newoutput.close()

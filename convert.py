@@ -1,7 +1,6 @@
 import sys
 import re
 import json
-import sys
 from itertools import *
 
 
@@ -50,15 +49,16 @@ def roundrobin(*iterables):
 #    return "seq(rshuffle(" + ', '.join([json.dumps(t) for t in real_types]) + "))"
 
 def make_shuffle_sequence(real_types):
-    if sep:
-        return "sepWith(\"sep\", seq(rshuffle(" + ', '.join([json.dumps(t) for t in real_types]) +")))"
-    elif noFiller:
-        return "seq(rshuffle(" + ', '.join([json.dumps(t) for t in real_types]) + "))"
-    else:
+    return "seq(rshuffle(" + ', '.join([json.dumps(t) for t in real_types]) + "))"
+    #if sep:
+    #    return "sepWith(\"sep\", seq(rshuffle(" + ', '.join([json.dumps(t) for t in real_types]) +")))"
+    #elif indexwd(l, colnames, 'design', None) =="Random":
         #print indexwd(l, colnames, 'experiment', None)
         #print "shuffle(randomize("+indexwd(l, colnames, 'experiment', None)+"), seq(rshuffle(" + ', '.join([json.dumps(t) for t in real_types]) + ")))"
-        return "shuffle(randomize("+indexwd(l, colnames, 'experiment', None)+"), seq(rshuffle(" + ', '.join([json.dumps(t) for t in real_types]) + ")))"
-
+    #    return "shuffle(randomize(" + ', '.join([json.dumps(t) for t in real_types]) + "))"
+    #elif indexwd(l, colnames, 'design', None) =="LatinSquare":
+    #    return "seq(rshuffle(" + ', '.join([json.dumps(t) for t in real_types]) + "))"
+ 
 
 scale=["1","2","3","4","5","6","7","8"]
 def make_preamble(shuffle_sequence):
@@ -80,6 +80,28 @@ var counterOverride = parseInt(Math.round(Math.random()*10000));
 
 var practiceItemTypes = ["practice"];
 var shuffleSequence = """ + shuffle_sequence + """;
+
+define_ibex_controller({
+    name: "Form2",
+
+    jqueryWidget: {
+        _init: function () {
+            this.options.transfer = null; // Remove 'click to continue message'.
+            this.element.VBox({
+                options: this.options,
+                triggers: [1],
+                children: [
+                    "FlashSentence", this.options,
+                    "Form", this.options
+                ]
+            });
+        }
+    },
+
+    properties: { }
+});
+
+
 define_ibex_controller({
     name: "DAJ",
     jqueryWidget: {
@@ -96,28 +118,6 @@ define_ibex_controller({
         });
         }
     },
-    properties: { }
-});
-
-define_ibex_controller({
-    name: "jjjjjjAJ",
-
-    jqueryWidget: {
-        _init: function () {
-            this.options.transfer = null; // Remove 'click to continue message'.
-            this.element.VBox({
-                options: this.options,
-                triggers: [3],
-                children: [
-                    "Message", this.options,
-                    "FlashSentence", this.options,
-                    "newCont", this.options,
-                    "Question", this.options
-                ]
-            });
-        }
-    },
-
     properties: { }
 });
 
@@ -140,6 +140,29 @@ define_ibex_controller({
 
     properties: { }
 });
+
+define_ibex_controller({
+    name: "AAJ",
+
+    jqueryWidget: {
+        _init: function () {
+            this.options.transfer = null; // Remove 'click to continue message'.
+            this.element.VBox({
+                options: this.options,
+                triggers: [3],
+                children: [
+                    "Message", this.options,
+                    "FlashSentence", this.options,
+                    "newCont", this.options,
+                    "Question", this.options
+                ] 
+            });
+        }
+    },
+
+    properties: { }
+});
+
 
 define_ibex_controller({
     name: "QAJ",
@@ -188,6 +211,12 @@ define_ibex_controller({
 
 var defaults = [
     "AJ", {
+        presentAsScale: true,
+        as: """ + str(scale) + """,
+        audioMessage: "Click here when you're ready to listen to the story with the additional remark",
+        audioTrigger: "click"
+    },
+    "AAJ", {
         presentAsScale: true,
         as: """ + str(scale) + """,
         audioMessage: "Click here when you're ready to listen to the story with the additional remark",
@@ -319,37 +348,48 @@ for sn in session_names:
         session_opts[sn][k] = indexwd(sessions[sn][0], colnames, k)
 
 #I'm leaving the old regex in for now because I think it is still used to grab the question.
-scale_regexp = re.compile(r"^\s*(.*?)(?:\\n)+.*?(\d*)\s*=\s*(.*?)\,?\s?(?:(?:et)|(?:and))?;?\s*(\d*)\s*=\s*(.*?)\s*\)?\s*$")
+#scale_regexp = re.compile(r"^\s*(.*?)(?:\\n)+.*?(\d*)\s*=\s*(.*?)\,?\s?(?:(?:et)|(?:and))?;?\s*(\d*)\s*=\s*(.*?)\s*\)?\s*$")
+#scale_regexp = re.compile(r"^\s*(.*?)\?.*?(\d*)\s*=\s*(.*?)\,?\s?(?:(?:et)|(?:and))?;?\s*(\d*)\s*=\s*(.*?)\s*\)?\s*$")
+scale_regexp = re.compile(r"^\s*(.*?\?).*?(\d*)\s*=\s*(.*?)\,?\s?(?:(?:et)|(?:and))?;?\s*(\d*)\s*=\s*(.*?)\s*\)?\s*$")
 column_style_scale_regexp = re.compile(r"^\s*(.*)_(\d*)_(\d*)_(.*)_(.*)$")
 questions = [ ]
 qType=""
 scale_comment_lefts = [ ]
 scale_comment_rights = [ ]
 for l in lines:
-    if indexwd(l, colnames, 'question', '') is not None:
+    if indexwd(l, colnames, 'question', '') is not None and indexwd(l, colnames, 'qType', '').upper() == "JM":
+        m = re.match(scale_regexp, indexwd(l, colnames, 'question', ''))
+    elif indexwd(l, colnames, 'question', '') is not None and indexwd(l, colnames, 'controller', '').upper() == "AJ":
+        m = re.match(scale_regexp, indexwd(l, colnames, 'question', ''))
+    elif indexwd(l, colnames, 'question', '') is not None and indexwd(l, colnames, 'controller', '').upper() == "QAJ":
         m = re.match(scale_regexp, indexwd(l, colnames, 'question', ''))
     else:
-        m = re.match(column_style_scale_regexp, indexwd(l, colnames, 'qType', ''))
-    if not m:
+        m = ""
+    if indexwd(l, colnames, 'question', '') is not None and indexwd(l, colnames, 'controller', '').upper() == "AAJ":
+        m = re.match(scale_regexp, indexwd(l, colnames, 'question', ''))
+    if not m and indexwd(l, colnames, 'controller', '').upper() != "Q3AJ":
         sys.stderr.write("Error: could not parse scale comments\n")
         sys.exit(1)
-    questions.append(m.group(1))
-    checkQType = indexwd(l, colnames, 'qType', '')
-    if checkQType.find('_') > 0:
-        m2=re.match(column_style_scale_regexp, indexwd(l, colnames, 'qType', ''))
-        if not m2:
-            sys.stderr.write("Error: could not parse scale comments or digits. Please format it as 'qtype_scaledigit1_scaledigit2_scalecommentleft_scalecommentright'\n")
-            sys.exit(1)
-        qType=m2.group(1)
-        firstdigits=m2.group(2)
-        seconddigits=m2.group(3)
-        scale_comment_rights.append(m2.group(5))
-        scale_comment_lefts.append(m2.group(4))
+    elif m:
+        questions.append(m.group(1))
+        checkQType = indexwd(l, colnames, 'qType', '')
+        if checkQType.find('_') > 0:
+            m2=re.match(column_style_scale_regexp, indexwd(l, colnames, 'qType', ''))
+            if not m2:
+                sys.stderr.write("Error: could not parse scale comments or digits. Please format it as 'qtype_scaledigit1_scaledigit2_scalecommentleft_scalecommentright'\n")
+                sys.exit(1)
+            qType=m2.group(1)
+            firstdigits=m2.group(2)
+            seconddigits=m2.group(3)
+            scale_comment_rights.append(m2.group(5))
+            scale_comment_lefts.append(m2.group(4))
+        else:
+            firstdigits=m.group(2)
+            scale_comment_lefts.append(m.group(3))
+            seconddigits=m.group(4)
+            scale_comment_rights.append(m.group(5))
     else:
-        firstdigits=m.group(2)
-        scale_comment_lefts.append(m.group(3))
-        seconddigits=m.group(4)
-        scale_comment_rights.append(m.group(5))
+        questions.append(indexwd(l, colnames, 'question', ''))
 
 
 def gen_item_DashAJ(sid, sn, l, colnames, line_index):
@@ -360,9 +400,9 @@ def gen_item_DashAJ(sid, sn, l, colnames, line_index):
     if session_opts[sn]['design'].upper() == 'RANDOM':
         pass
     elif session_opts[sn]['design'].upper() == 'LATINSQUARE':
-        cond = [cond, str(int(indexwd(l, colnames, 'condition')))]
+        cond = [str(int(indexwd(l, colnames, 'condition'))), str(sid) + '-' +str(int(indexwd(l, colnames, 'item')))]
     elif session_opts[sn]['design'].upper() == 'WITHIN':
-        cond = [cond, items[str(sid) + '-' + str(int(indexwd(l, colnames, 'item')))]]
+        cond = [int(indexwd(l,colnames,'condition')), int(indexwd(l, colnames, 'item'))]
         #cond = [cond, items[str(sid) + '-' + str(int(indexwd(l, colnames, 'item')))]]
         #cond = [cond, items[str(sid) + '-' + str(int(indexwd(l, colnames, 'item')))]]
         #cond = [cond, items[str(sid) + '-' + str(int(indexwd(l, colnames, 'item')))]]
@@ -371,7 +411,9 @@ def gen_item_DashAJ(sid, sn, l, colnames, line_index):
         sys.exit(1)
     if int(indexwd(l, colnames, 'item', '')) > 30:
         cond = ["filler"+ '-' + indexwd(l, colnames, 'item', ''), indexwd(l, colnames, 'condition', '')]
-    controller="AJ"
+    controller="AJ" #DEFAULT CONTROLLER
+    if indexwd(l, colnames, 'controller','') == "Q3AJ":
+        controller="Q3AJ"
     dashedAJOptions=None  
     if indexwd(l, colnames, 'setup', '') is not None and indexwd(l, colnames, 'context', '') is not None:
         html = indexwd(l, colnames, 'setup', '') + '<br>' + indexwd(l, colnames, 'context', '') + '<br>' + indexwd(l, colnames, 'text', '')
@@ -394,33 +436,37 @@ def gen_item_DashAJ(sid, sn, l, colnames, line_index):
 def gen_item(sid, sn, l, colnames, line_index):
     #cond = str(sid) + '-' + indexwd(l, colnames, 'conditionLabel', '') + indexwd(l, colnames, 'condition', '')
     #cond =  str(sid) + '-' + indexwd(l, colnames, 'condition', '')
-    cond = indexwd(l, colnames, 'condition', '')
+    cond = str(sid) + '-' +str(int(indexwd(l, colnames, 'item')))
     if session_opts[sn]['design'].upper() == 'RANDOM':
         pass
     elif session_opts[sn]['design'].upper() == 'LATINSQUARE':
-        cond = [cond, str(int(indexwd(l, colnames, 'item')))]
+        #cond = [str(int(indexwd(l, colnames, 'item'))), cond]
+        cond = [str(sid) + '-' +str(int(indexwd(l, colnames, 'item'))), str(sid) + '-' +str(int(indexwd(l, colnames, 'item')))]
+        #cond = [cond, items[str(sid) + '-' + str(int(indexwd(l, colnames, 'item')))]]
     elif session_opts[sn]['design'].upper() == 'WITHIN':
         #cond = [indexwd(l, colnames, 'item', ''), str(int(indexwd(l, colnames, 'condition')))]
         #cond = indexwd(l, colnames, 'condition', '') + '-' + indexwd(l, colnames, 'item', '')
-        cond = [cond, items[str(sid) + '-' + str(int(indexwd(l, colnames, 'item')))]]
-        #cond = [cond, items[str(sid) + '-' + str(int(indexwd(l, colnames, 'item')))]]
-        #cond = [cond, items[str(sid) + '-' + str(int(indexwd(l, colnames, 'item')))]]
-        #cond = [cond, items[str(sid) + '-' + str(int(indexwd(l, colnames, 'item')))]]
+        cond = [indexwd(l, colnames, 'condition'), indexwd(l, colnames, 'item')]
     else:
         sys.stderr.write("Did not recognize design type '%s'\n" % session_opts[sn]['design'])
         sys.exit(1)
 #    if int(indexwd(l, colnames, 'item', '')) > 30:
 #        cond = ["filler"+ '-' + indexwd(l, colnames, 'item'), str(int(indexwd(l, colnames, 'condition')))]
-    if isSelfPaced:
+    controller="AJ" #DEFAULT CONTROLLER
+    if indexwd(l, colnames, 'controller','') == "Q3AJ":
+        controller="Q3AJ"
+    elif indexwd(l, colnames, 'controller','') == "AAJ":
+        controller="AAJ"
+    elif isSelfPaced:
         controller ="DAJ"
-    if isQAJ:
+    elif isQAJ:
         controller = "Q3AJ"
         html = '<br>'
     else:
-        controller = "AJ"
+        controller = "AJ"   
         ##html = "Read the passage below carefully: <br><br>" + indexwd(l, colnames, 'context', '')
-        #html = indexwd(l, colnames, 'context', '') + "<br><br>"
-        html = ""
+        html = indexwd(l, colnames, 'context', '') + "<br><br>"
+        #html = ""
     ajoptions = None
     # Determine whether or not this is audio.
     if indexwd(l, colnames, 'contextFile') is not None or indexwd(l, colnames, 'wavFile') is not None:
@@ -438,7 +484,26 @@ def gen_item(sid, sn, l, colnames, line_index):
                 #extraInfo[element] = indexwd(l, colnames, element)
                 extraInfo.append(element)
                 extraInfo.append(indexwd(l, colnames, element))
-        if indexwd(l, colnames, 'qType', '') == "jm":
+        if controller == "AAJ":
+            ajoptions = dict(
+                html = indexwd(l, colnames, 'context', '') + "<br>",
+                moreHTML= indexwd(l, colnames, 'text', ''),
+                q = questions[line_index],
+                leftComment = scale_comment_lefts[line_index],
+                rightComment = scale_comment_rights[line_index],
+                s = dict(audio=audiofiles),
+                extra = extraInfo
+                )
+        elif controller == "Q3AJ":
+            ajoptions = dict(
+                html = html,
+                s = dict(audio=audiofiles),
+                qAJ = questions[line_index],
+                moreHTML="",
+                AJas = [indexwd(l, colnames, 'correctAnswer', ''), indexwd(l, colnames, 'alt1Answer', '')],
+                extra = extraInfo
+                )
+        elif indexwd(l, colnames, 'qType', '') == "jm":
             ajoptions = dict(
                 html=html,
                 s = dict(audio=audiofiles),
@@ -476,7 +541,15 @@ def gen_item(sid, sn, l, colnames, line_index):
                     presentAsScale = "true",
                     #extra = extraInfo
                 )
-        elif isSelfPaced:
+        elif controller == "Q3AJ":
+            ajoptions = dict(
+                html = html,
+                qAJ = questions[line_index],
+                moreHTML="",
+                AJas = [indexwd(l, colnames, 'correctAnswer', ''), indexwd(l, colnames, 'alt1Answer', '')],
+                extra = extraInfo
+                )
+        elif controller== "DAJ":
             ajoptions = dict(
                     html = html,
                     s = re.split(r"\s*\\n\s*", indexwd(l, colnames, 'text', ''))[0],
@@ -502,9 +575,9 @@ def gen_item(sid, sn, l, colnames, line_index):
         )
         elif indexwd(l, colnames, 'qType', '') == "jm":
             ajoptions = dict(
-                    html = html,
+                    html = indexwd(l, colnames, 'context', ''),
                     #s = re.split(r"\s*\\n\s*", indexwd(l, colnames, 'text', ''))[0],
-                    s = indexwd(l, colnames, 'context', ''),
+                    s = indexwd(l, colnames, 'text', ''),
                     q = questions[line_index],
                     leftComment = scale_comment_lefts[line_index],
                     rightComment = scale_comment_rights[line_index],
@@ -535,13 +608,14 @@ if 'instructions' in colnames:
         contents = f.read().decode('utf-8')
         instructions.append(contents)
 
+
 shufseqs = [ ]
 prefix = 0
 for sn in session_names:
     if instructions is not None:
         shufseqs.append(str(prefix) + "-instructions")
     #shufseqs.append(make_shuffle_sequence(real_types=[str(prefix) + "-" + x for x in conditions[sn].keys()]))
-    shufseqs.append(make_shuffle_sequence(real_types=[x for x in conditions[sn].keys()]))
+    shufseqs.append(make_shuffle_sequence(real_types=[x for x in items.keys()]))
     print shufseqs
     prefix += 1
 shufseq = 'seq("__workerid__",' + ','.join(shufseqs) + ', "__results__", "__code__")'
@@ -557,6 +631,15 @@ scale=range(int(firstdigits),1+int(seconddigits));
 for i in scale:
     scale[scale.index(i)]=str(i)
 out.write(make_preamble(shufseq))
+
+
+
+
+
+
+
+
+
 #out.write("defaults[1].leftComment = " + json.dumps(scale_comment_left) + ";\n")
 #out.write("defaults[1].rightComment = " + json.dumps(scale_comment_right) + ";\n")
 out.write("var items = [\n")
@@ -594,16 +677,6 @@ for sn in session_names:
             out.write("['%s', 'Message', { html: %s, transfer: 'keypress' }]" % (str(prefix) + "-instructions", json.dumps(raw_text)))
             if prefix == 0:
                 out.write(",\n")
-    #put this loop inside another for loop? Going through all the sessions? 
-#    for l in sessions[sn]:
-#        if not first:
-#            out.write(",\n")
-#        first = False
-        #only gen_item call located here, alternately place the loop right here
-#        out.write(gen_item(prefix, sn, l, colnames, line_index))
-#        line_index += 1
-    #tuple_exp=tuple(experiment_trials)
-    #interleaved_list=roundrobin(flatten(experiment_trials))
     for l in sessions[sn]:
         if not first:
             out.write(",\n")
