@@ -37,6 +37,11 @@ sh setup.sh experimentName dataFileName.js
 scp *.wav experiment@prosodylab.cs.mcgill.ca:~/public_html/experimentName/chunk_includes
 ```
 
+#### You should also upload an instruction file, otherwise the default will be used
+``` {r, engine='bash', count_lines}
+scp instruc.html experiment@prosodylab.cs.mcgill.ca:~/public_html/experimentName/chunk_includes
+```
+
 #### Go to...
 `http://prosodylab.cs.mcgill.ca/~experiment/experimentName/www/experiment.html`
 
