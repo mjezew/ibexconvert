@@ -1,9 +1,10 @@
 ## Before you begin
 
-### How to get your own psycholinguistic experiment up!
 The next steps assume you have the proper format on your spreadsheet (if not, refer to https://github.com/prosodylab/prosodylab-experimenter/blob/master/instructions.Rmd).
 
 The only addition to your spreadsheet is a column titled "Controller." Put the value "QAJ" if you'd like an audio experiment and "AJ" if you'd like an audio-less experiment.
+
+
 
 ## Setup
 
