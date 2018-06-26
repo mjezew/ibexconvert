@@ -4,7 +4,7 @@
 Assuming you've got the proper format on your spreadsheet (if not, refer to https://github.com/prosodylab/prosodylab-experimenter/blob/master/instructions.Rmd)
 The only addition to your spreadsheet is a column titled "Controller." Put the value "QAJ" if you'd like an audio experiment and "AJ" if you'd like an audio-less experiment.
 
-### Setup
+## Setup
 
 #### Run convert.py on your spreadsheet from the command line
 
@@ -39,7 +39,7 @@ scp *.wav experiment@prosodylab.cs.mcgill.ca:~/public_html/experimentName/chunk_
 `http://prosodylab.cs.mcgill.ca/~experiment/experimentName/www/experiment.html`
 
 
-### Results
+## Results
 
 #### Results can be accessed by... (remote)
 
