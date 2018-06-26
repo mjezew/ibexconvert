@@ -16,6 +16,8 @@ chmod 755 ~/public_html/cgi-bin/$1/
 cp $2 ~/public_html/$1/data_includes/
 rm ~/public_html/$1/data_includes/germag.js
 chmod 755 ~/public_html/$1/data_includes/*
+#rm -f ~/public_html/$1/results/*
+rm -f ~/public_html/$1/cache/*
 echo "completed"
 
 #python editFile.py ~/public_html/$1/server_conf.py $user $1
