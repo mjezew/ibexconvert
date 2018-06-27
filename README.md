@@ -56,7 +56,7 @@ scp experiment@prosodylab.cs.mcgill.ca:~/public_html/experimentName/results/resu
 
 #### To process results,
 ``` {r, engine='bash', count_lines}
-python combinePlus.py originalExperimentFile.txt expresults.txt processedresults.txt
+python combine.py originalExperimentFile.txt expresults.txt processedresults.txt
 ```
 
 
