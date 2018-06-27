@@ -59,4 +59,19 @@ scp experiment@prosodylab.cs.mcgill.ca:~/public_html/experimentName/results/resu
 python combine.py originalExperimentFile.txt expresults.txt processedresults.txt
 ```
 
+## Debugging tips
+
+#### Server side python issues
+If server.cgi is where the issue is arising, add a sys.stderr.write() statement, and you can see the output of this statement at /var/log/apache2/prosodylab.error.log
+
+### JavaScript issues
+If any javascript file is the issue, use console.log and check the console on your browser.
+
+### Server issues
+Be /very/ careful about permissions, this is the issue for server problems a good deal of the time.
+Also try to check paths very carefully with print statements, as this is another silly issue that can occur very easily.
+Otherwise, in case of more serious server mistakes, check with the CS server administrators.
+
+
+
 
