@@ -4,7 +4,7 @@ The next steps assume you have the proper format on your spreadsheet (if not, re
 
 The only addition to your spreadsheet is a column titled "Controller." Put the value "QAJ" if you'd like an audio experiment and "AJ" if you'd like an audio-less experiment.
 
-
+All actions below are assumed to be done on your local machine, unless otherwise stated.
 
 ## Setup
 
@@ -26,7 +26,7 @@ scp dataFileName.js experiment@prosodylab.cs.mcgill.ca:~/public_html/
 ssh experiment@prosodylab.cs.mcgill.ca
 ```
 
-#### Run the script titled setup.sh (done remotely on prosody server)
+#### Run the script titled setup.sh (done remotely on the Prosody Lab server)
 
 ``` {r, engine='bash', count_lines}
 sh setup.sh experimentName dataFileName.js
@@ -48,7 +48,7 @@ scp instruc.html experiment@prosodylab.cs.mcgill.ca:~/public_html/experimentName
 
 ## Results
 
-#### Results can be accessed by... (remote)
+#### Results can be accessed by...
 
 ``` {r, engine='bash', count_lines}
 scp experiment@prosodylab.cs.mcgill.ca:~/public_html/experimentName/results/results.txt ./expresults.txt
