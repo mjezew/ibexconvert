@@ -64,8 +64,8 @@ fullcount=-1
 #idPattern=re.compile(r"^\#PARTICIPANT\sID:\s(\w*)$")
 
 
-#print idPattern
-#idPattern=re.compile(r"^PARTICIPANT\sID:\s(\d*)$")
+
+#idPattern=re.compile(r"^\#PARTICIPANT\sID:\s(\w*)$")
 idPattern = re.compile(r"workerid,(\w*)")
 
 for workerLines in trialDataList:
@@ -93,13 +93,16 @@ newoutput=open(outputFileName,'w')
 newoutput.write(headersString+'\n')
 #check item number(4th in each row from trial data) with row number of originalExperiment
 formNumber=0
-screeningPattern=re.compile(r"^.*,.*,Form,(\d),.*$")
+itemidNumber = 0
+itemPattern=re.compile(r"AJ,(\d*),0,0-(\d*),.*")
+screeningPattern=re.compile(r"^.*,.*,Form\d*,(\d),.*$")
+firstLine = True
 for trialLine in trialDataList:
     if len(trialLine)>0 and trialLine[0]!="#":
-        match=screeningPattern.match(trialLine)
-        idMatch=idPattern.match(trialLine)
+        match=screeningPattern.search(trialLine)
+        #idMatch=idPattern.match(trialLine)
+        #if statement works with Forms, else works with Items
         if match:
-            #need to acquire number of forms, this should always trigger before the else section does, but this is iffy
             if formNumber==0:
                 formNumber=int(match.group(1))
             formGatherA=trialLine.split(',')
@@ -108,26 +111,10 @@ for trialLine in trialDataList:
                 t=t+1
                 newoutput.write("NULL\t")
             newoutput.write(trialLine.replace(",","\t")+"\t""\n")
-            #if itemNum and itemNum>0:
-            #print "formfound"
-        elif idMatch:
-            pass
         else:
-            if formNumber==0:
-                formNumber=4
+            itemNumPattern = re.compile(r"AJ,\d*,0,0-(\d*),.*")
             #print trialLine
-            itemNum=int(trialLine.split(',')[3])-formNumber
-            if itemNum ==1:
-                newoutput.write(experimentData[itemNum]+"\t"+trialLine.replace(",", "\t")+"\t""\n")
-            elif itemNum and itemNum>=0:
-                #take row number item num from experimentData
-                #add workerid based on experiment type
-                #print experimentData[itemNum]+trialLine
-                #print experimentData[itemNum]
-                #print trialLine
-                #print itemNum
-                newoutput.write(experimentData[itemNum]+"\t"+trialLine.replace(",", "\t")+"\t""\n")
-            else:
-                #plus 1 if exp1 or exp2, plus 2 if exp3 for liz
-                newoutput.write(experimentData[itemNum+1]+"\t"+trialLine.replace(",", "\t")+"\t""\n")
+            itemNumMatch = itemNumPattern.search(trialLine)
+            itemNum=int(itemNumMatch.group(1))
+            newoutput.write(experimentData[itemNum]+"\t"+trialLine.replace(",", "\t")+"\t""\n")
 newoutput.close()
