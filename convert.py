@@ -618,7 +618,7 @@ for sn in session_names:
     shufseqs.append(make_shuffle_sequence(real_types=[x for x in items.keys()]))
     print shufseqs
     prefix += 1
-shufseq = 'seq("__workerid__",' + ','.join(shufseqs) + ', "__results__", "__code__")'
+shufseq = 'seq("__workerid__",' + '"next",' + ','.join(shufseqs) + ', "__results__", "__code__")'
 if wIntro:
     shufseq = 'seq("consent", "intro", "instructions",' + ','.join(shufseqs) + ', "__results__", "__code__")'
 
@@ -648,6 +648,8 @@ out.write("""
 ["__workerid__", "Form", { html: "<p>Please enter your worker id: <p><input type='text' name='workerid' size='20'>" }],
 
 ["__results__", "__SendResults__", { }],
+
+["next", "Form2", {"html": {include:"instruc.html"}, "s": {"audio": ["null.wav"]}, transfer: "click", countsForProgressBar: true}],
 
 ["__code__", "Message", { transfer: null, html: "Thank you! Your completion code is: " + genCode() }],
 
